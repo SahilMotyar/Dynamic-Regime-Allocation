@@ -147,7 +147,7 @@ def _format(value, kind: str, stats: dict) -> str:
 def comparison_table(*stat_blocks: dict) -> str:
     """Render two or more statistics blocks side by side as a fixed-width table."""
     labels = [str(block.get("label", f"col{i}")) for i, block in enumerate(stat_blocks)]
-    width = max(22, *(len(label) + 2 for label in labels))
+    width = max(26, *(len(label) + 2 for label in labels))  # 26 fits "YYYY-MM-DD to YYYY-MM-DD"
     lines = ["Metric".ljust(26) + "".join(label.rjust(width) for label in labels)]
     lines.append("-" * len(lines[0]))
     for title, key, kind in _ROWS:

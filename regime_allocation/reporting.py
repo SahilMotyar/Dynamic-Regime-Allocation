@@ -67,7 +67,7 @@ def plot_results(
     import matplotlib.pyplot as plt
 
     fig, axes = plt.subplots(
-        3, 1, figsize=(13, 10), sharex=True, gridspec_kw={"height_ratios": [3, 2, 2]}
+        4, 1, figsize=(13, 11), sharex=True, gridspec_kw={"height_ratios": [3, 2, 2, 1]}
     )
 
     ax = axes[0]
@@ -102,12 +102,21 @@ def plot_results(
         labels=["Bear", "Sideways", "Bull"],
         alpha=0.65,
     )
-    ax.plot(results.index, results["Position"] / max(results["Position"].max(), 1e-9),
-            color="black", linewidth=0.9, label="Exposure (scaled)")
     ax.set_ylim(0, 1)
     ax.set_ylabel("Regime belief")
-    ax.legend(loc="upper left", ncol=4, fontsize=8)
+    ax.legend(loc="upper left", ncol=3, fontsize=8)
     ax.grid(True, alpha=0.2)
+
+    # Exposure gets its own panel: overlaid on the belief stack, the 0/1 flips
+    # drew a vertical line at every transition and read as a picket fence.
+    ax = axes[3]
+    ax.fill_between(
+        results.index, results["Position"], 0, step="post", color="#1f4fd8", alpha=0.55
+    )
+    ax.set_ylim(0, max(float(results["Position"].max()) * 1.15, 1.15))
+    ax.set_ylabel("Exposure")
+    ax.set_xlabel("")
+    ax.grid(True, alpha=0.25)
 
     fig.tight_layout()
     if save_path:
