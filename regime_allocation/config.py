@@ -63,10 +63,15 @@ class StrategyConfig:
     ``P(Bull) > bull_aggressive`` and only de-levered once it falls back below
     ``bull_deescalate``. Without that gap the top tier would flip on and off
     around a single threshold and pay transaction costs each time.
+
+    ``leverage_max`` defaults to 1.0, i.e. the aggressive tier is *off*. It is
+    supported and correct -- pass ``--leverage-max 1.5`` to enable it -- but on
+    Nifty it measures worse on every risk-adjusted basis once financing and the
+    extra turnover it creates are charged for. See the README.
     """
 
     leverage_base: float = 1.0
-    leverage_max: float = 1.5
+    leverage_max: float = 1.0
     bull_entry: float = 0.60
     bull_aggressive: float = 0.80
     bull_deescalate: float = 0.75

@@ -39,7 +39,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     strat = p.add_argument_group("strategy")
     strat.add_argument("--leverage-base", type=float, default=1.0)
-    strat.add_argument("--leverage-max", type=float, default=1.5)
+    strat.add_argument(
+        "--leverage-max",
+        type=float,
+        default=1.0,
+        help="exposure in a strong bull; 1.0 disables the aggressive tier",
+    )
     strat.add_argument("--bull-entry", type=float, default=0.60)
     strat.add_argument("--bull-aggressive", type=float, default=0.80)
     strat.add_argument("--bull-deescalate", type=float, default=0.75)

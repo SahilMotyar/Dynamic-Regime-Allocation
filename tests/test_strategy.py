@@ -7,7 +7,8 @@ import pytest
 from regime_allocation.config import StrategyConfig
 from regime_allocation.strategy import next_position, signal_label, target_positions
 
-CFG = StrategyConfig()
+CFG = StrategyConfig(leverage_max=1.5)  # tier enabled, so the tier logic is exercised
+FLAT = StrategyConfig()  # shipped default: aggressive tier off
 
 
 def test_aggressive_tier_is_reachable_from_cash():
@@ -26,6 +27,13 @@ def test_aggressive_tier_is_reachable_as_an_upgrade():
 
 def test_standard_entry_between_thresholds():
     assert next_position(0.0, 0.1, 0.2, 0.70, 1.0, CFG) == CFG.leverage_base
+
+
+def test_thresholds_are_strict_inequalities():
+    """Sitting exactly on a threshold is not a signal."""
+    assert next_position(0.0, 0.1, 0.3, CFG.bull_entry, 1.0, CFG) == 0.0
+    assert next_position(0.0, 0.1, CFG.sideways_entry, 0.3, 1.0, CFG) == 0.0
+    assert next_position(1.0, CFG.bear_exit, 0.2, 0.2, 0.0, CFG) == 1.0
 
 
 def test_sideways_entry_requires_price_above_the_z_floor():
@@ -59,9 +67,9 @@ def test_target_positions_runs_the_machine_in_order():
     idx = pd.date_range("2020-01-01", periods=4, freq="D")
     df = pd.DataFrame(
         {
-            "P_Bear": [0.1, 0.1, 0.9, 0.1],
-            "P_Sideways": [0.1, 0.1, 0.05, 0.6],
-            "P_Bull": [0.9, 0.7, 0.05, 0.3],
+            "P_Bear": [0.1, 0.1, 0.9, 0.05],
+            "P_Sideways": [0.1, 0.1, 0.05, 0.65],
+            "P_Bull": [0.9, 0.7, 0.05, 0.30],
             "Z_Score": [1.0, 1.0, -2.0, 0.5],
         },
         index=idx,
@@ -80,6 +88,13 @@ def test_signal_label_distinguishes_the_tiers():
     assert "CASH" in signal_label(0.0, CFG)
     assert "STRONG" in signal_label(CFG.leverage_max, CFG)
     assert "INVESTED" in signal_label(CFG.leverage_base, CFG)
+
+
+def test_default_config_never_levers_above_one():
+    """The shipped default is un-levered; the tier is opt-in via --leverage-max."""
+    assert FLAT.leverage_max == 1.0
+    assert next_position(0.0, 0.01, 0.01, 0.99, 2.0, FLAT) == 1.0
+    assert next_position(1.0, 0.01, 0.01, 0.99, 2.0, FLAT) == 1.0
 
 
 def test_config_rejects_inconsistent_thresholds():
